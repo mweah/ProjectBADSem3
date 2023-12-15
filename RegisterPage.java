@@ -1,14 +1,20 @@
 package registerPage;
 
+import java.sql.SQLException;
+import db.Connect;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import loginPage.LoginPage;
 
 public class RegisterPage {
+	
+	Connect con = Connect.getInstance();
 	
 	Stage stage;
 	Scene scn;
@@ -65,7 +71,7 @@ public class RegisterPage {
 		
 		regisButton = new Button("Register");
 		
-		font = new Font(30);
+		font = Font.font("Helvetica", FontWeight.BOLD,FontPosture.ITALIC, 36);
 		registerLabel.setFont(font);
 		
 		logRegMenuBar = new MenuBar();
@@ -108,7 +114,7 @@ public class RegisterPage {
 	
 	public void styling() {
 		vbox.getChildren().add(registerLabel);
-		vbox.setAlignment(Pos.CENTER);
+		vbox.setAlignment(Pos.CENTER_LEFT);
 		
 		gp.setHgap(10);
 		gp.setVgap(10);
@@ -133,8 +139,36 @@ public class RegisterPage {
 	    gp.add(regisButton, 0, 16);
 	    gp.setAlignment(Pos.CENTER);
 	    bp.setCenter(gp);
-	    scn = new Scene(bp, 800, 800);
+	    scn = new Scene(bp, 1200, 800);
 	}
+	
+	public String generateUID() {
+		String query = "SELECT UserID FROM user";
+		int plusOne = 0;
+		
+		con.setResultSet(con.selectData(query));
+		try {
+			while(con.getResultSet().next()) {
+				plusOne++;
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String plusUID = String.format("US%03d", ++plusOne);
+		return plusUID;
+		
+	}
+	
+	public void insertDataToDB(String Email, String Username, String Password, String PhoneNumber, String Address, String Gender, String Role) {
+	    String query = String.format("INSERT INTO user "
+				+ "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')",
+	            generateUID(), Email, Username, Password, PhoneNumber, Address, Gender, Role);
+
+	    con.executeUpdate(query);
+	}
+
 	
 	public void menuHandling() {
 		regMenuMI.setOnAction(e -> {
@@ -143,6 +177,31 @@ public class RegisterPage {
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
+		});
+		
+		regisButton.setOnMouseClicked(e ->{
+			String Email = emailTF.getText();
+			String Username = usernameTF.getText();
+			String Password = passwordPF.getText();
+			String ConfirmPW = confirmPwPF.getText();
+			String PhoneNumber = phoneNumberTF.getText();
+			String Gender = null;
+			RadioButton selectedRadioButton = (RadioButton) genderGroup.getSelectedToggle();
+		      if (selectedRadioButton != null) {
+		        Gender = selectedRadioButton.getText();
+		    }
+			String Address = addressTA.getText();
+			String Role = "User";
+			
+		    boolean isBoxChecked = tncCheckBox.isSelected();
+		    
+			insertDataToDB(Email, Username, Password, PhoneNumber, Address, Gender, Role);
+			try {
+				new LoginPage().start(stage);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		});
 	}
 	

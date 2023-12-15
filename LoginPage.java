@@ -7,6 +7,8 @@ import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import registerPage.RegisterPage;
 
@@ -14,7 +16,6 @@ import java.sql.SQLException;
 
 import db.Connect;
 import homePage.HomePage;
-import isiDB.User;
 
 public class LoginPage extends Application{
 	
@@ -52,7 +53,7 @@ public class LoginPage extends Application{
 		usernameLabel = new Label("Username: ");
 		passwordLabel = new Label("Password: ");
 		
-		font = new Font(56);
+		font = Font.font("Helvetica", FontWeight.BOLD,FontPosture.ITALIC, 56);
 		loginLabel.setFont(font);
 		
 		usernameField = new TextField();
@@ -68,35 +69,33 @@ public class LoginPage extends Application{
 		logRegMenuBar = new MenuBar();
 		logRegMenu = new Menu("Login");
 		logRegMI = new Menu("Register");
-		
 		logRegMenuBar.getMenus().add(logRegMenu);
 		logRegMenu.getItems().addAll(logRegMI);
-		
 		bp.setTop(logRegMenuBar);
 	}
 	
 	public void styling() {
-		vbox.getChildren().add(loginLabel);
+		vbox.getChildren().addAll(loginLabel, gp, loginButton);
+		vbox.setSpacing(20);
 		vbox.setAlignment(Pos.CENTER);
 		
-		gp.add(vbox, 0, 0);
-		gp.add(usernameLabel, 0, 2);
-		gp.add(passwordLabel, 0, 3);
+		gp.add(usernameLabel, 0, 1);
+		gp.add(passwordLabel, 0, 2);
 		
-		gp.add(usernameField, 1, 2);
-		gp.add(pwField, 1, 3);
+		gp.add(usernameField, 1, 1);
+		gp.add(pwField, 1, 2);
 		usernameField.setPromptText("Input Username");
 		pwField.setPromptText("Input Password");
 		
-		gp.add(loginButton, 1, 4);
-		loginButton.setPrefSize(150, 20);
+		loginButton.setPrefSize(210, 20);
 		
 		gp.setVgap(10);
 		gp.setAlignment(Pos.CENTER);
 		
-		bp.setCenter(gp);
-		scn = new Scene(bp, 700, 700);
+		bp.setCenter(vbox);
+		scn = new Scene(bp, 1200, 800);
 	}
+		
 	
 	public boolean accountValidation(String usernameCheck, String passwordCheck) throws SQLException {
 		boolean accountValid = false;
@@ -158,6 +157,26 @@ public class LoginPage extends Application{
 	    });
 	}
 
+	
+	//function simpan userid biar menu cart sama history bekerja sesuai dengan user yang login
+	public String saveUserID(String usernameCheck) {
+		String userID = "";
+		String query = "SELECT u.Username, u.UserID FROM user u";
+		con.setResultSet(con.selectData(query));
+		
+		try {
+		while(con.getResultSet().next()) {
+			String Username = con.getResultSet().getString("Username");
+			userID = con.getResultSet().getString("UserID");
+			//Cek apakah username dari database mirip dengan 'cekUsername'
+			if(Username.equals(usernameCheck)) break;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return userID;
+	}
 	public void menuHandling() {
 		logRegMI.setOnAction(e->{
 			try {
@@ -173,14 +192,28 @@ public class LoginPage extends Application{
 			try {
 				if(accountValidation(usernameCheck, passwordCheck)) {
 					if(checkRole(usernameCheck).equals("User")) {
-					new HomePage(stage);
-					System.out.println("Mantap anda user");
+					String userID = saveUserID(usernameCheck);
+					new HomePage(stage, userID);
+					
+					//Testing bekerja atau gak checkRole & userid
+					System.out.println("Anda user");
+					//Testing apakah userID terbawa ke home page
+					System.out.println("ID Anda: " + userID);
 					}
 					else if(checkRole(usernameCheck).equals("Admin")) {
-						System.out.println("Anda admin omg");
+
+						
+						//Testing bekerja atau gak checkRole
+						System.out.println("Anda admin");
 					}
+				} else if(usernameCheck.isEmpty() && passwordCheck.isEmpty()) {
+					errorAlert();
+				} else {
+					errorAlert();
 				}
+
 				
+								
 			} catch (SQLException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();

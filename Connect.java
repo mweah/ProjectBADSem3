@@ -3,6 +3,7 @@ package db;
 import java.sql.*;
 
 
+
 public class Connect {
 	private final String username = "root";
 	private final String password = "";
@@ -48,6 +49,17 @@ public class Connect {
 		return rs;
 	}
 	
+	public PreparedStatement prepareStatement(String query) {
+	    try {
+	        return con.prepareStatement(query);
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        // Handle the exception appropriately (e.g., show an error alert)
+	        return null;
+	    }
+	}
+
+	
 	public void executeUpdate(String query) {
 		try {
 			state.executeUpdate(query);
@@ -68,10 +80,11 @@ public class Connect {
 	}
 	
 	public void setResultSet(ResultSet rs) {
-		
+		this.rs = rs;
 	}
 	
 	public ResultSet getResultSet() {
 		return this.rs;
-	}
+	}	
+	
 }
