@@ -28,7 +28,6 @@ public class HomePage {
 	double hoodiePrice;
 	double totalPrice;
 	int qty;
-	int index; 
 
 	Stage stage;
 	Scene scn;
@@ -65,9 +64,9 @@ public class HomePage {
 	ObservableList<Hoodie> dataHoodie;
 	
 	Font titleFont = Font.font("Constantia", FontPosture.ITALIC, 56);
-	
-	Font detailFont = Font.font("Verdana", FontWeight.BOLD, 36);
-	
+	Font detailFont = Font.font("Verdana", FontWeight.BOLD, FontPosture.ITALIC, 36);
+	Font btnFont = Font.font("Times New Roman", FontWeight.BOLD, 14);
+	Font otherFont = Font.font("Times New Roman", 14);
 	User user;
 
 	private String userID;
@@ -76,18 +75,26 @@ public class HomePage {
 		bp = new BorderPane();
 		gpInfo = new GridPane();
 		addToCartBtn = new Button("Add to Cart");
+		addToCartBtn.setFont(btnFont);
 		// Udah muncul dari awal
 		hoohdieTitle = new Label("hO-Ohdie");
 		hoohdieTitle.setFont(titleFont);
 		hoodieDetailTitle = new Label("Hoodie's Detail");
 		hoodieDetailTitle.setFont(detailFont);
 		hoodieSelect = new Label("Select an item from the list");
+		hoodieSelect.setFont(otherFont);
 		//Gak muncul sebelum item ada di tekan
 		hoodieIDLbl = new Label("Hoodie ID: ");
 		hoodieNameLbl = new Label("Name: ");
 		hoodiePriceLbl = new Label("Price: ");
 		hoodieQuantityLbl = new Label("Quantity: ");
 		totalPriceLbl = new Label("Total Price");
+		
+		hoodieIDLbl.setFont(otherFont);
+		hoodieNameLbl.setFont(otherFont);
+		hoodiePriceLbl.setFont(otherFont);
+		hoodieQuantityLbl.setFont(otherFont);
+		totalPriceLbl.setFont(otherFont);
 		
 		//buat jadi invisible
 		hoodieIDLbl.setVisible(false);
@@ -153,8 +160,10 @@ public class HomePage {
 	private void styling() {
 		//Title Page sama tabelnya
 		VBox listViewBox = new VBox();
-		listViewBox.getChildren().addAll(hoohdieTitle, hoodieLV);
+		listViewBox.getChildren().addAll(hoodieLV);
 		listViewBox.setAlignment(Pos.CENTER_LEFT);
+		HBox titleBox = new HBox();
+		titleBox.getChildren().add(hoohdieTitle);
 		hoodieList();
 		//Quantity + Total Price
 		//hboxhp ngegabung tabel sama info, dibuat center pakai bp
@@ -166,15 +175,21 @@ public class HomePage {
 		gpInfo.add(hoodiePriceLbl, 0, 3);
 		gpInfo.add(hoodieQuantityLbl, 0, 4);
 		gpInfo.add(addToCartBtn, 0, 6);
-		gpInfo.setAlignment(Pos.CENTER_LEFT);
+		gpInfo.setAlignment(Pos.CENTER);
 		
 		HBox HBoxHP;
-		HBoxHP = new HBox(listViewBox, gpInfo);
+		HBoxHP = new HBox();
+		HBoxHP.getChildren().addAll(listViewBox, gpInfo);
+		HBoxHP.setSpacing(25);
 		HBoxHP.setAlignment(Pos.CENTER);
 			
+		GridPane combineAll = new GridPane();
+		combineAll.add(titleBox, 0, 0);
+		combineAll.add(HBoxHP, 0, 1);
+		combineAll.setAlignment(Pos.CENTER);
 		
 		bp.setTop(menuBar);
-		bp.setCenter(HBoxHP);
+		bp.setCenter(combineAll);
 		
 		//kasih jarak
 		gpInfo.setHgap(10);
@@ -182,29 +197,7 @@ public class HomePage {
 		HBoxHP.setSpacing(50);
 		listViewBox.setSpacing(5);
 		
-		scn = new Scene(bp, 800, 800);
-	}
-	
-	public void cartPageHandling(Stage stage, String userID) {
-		cartMI.setOnAction(e ->{
-			try {
-				new CartPage(stage, userID);
-			} catch (Exception e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		});
-	}
-	
-	public void historyPageHandling(Stage stage, String userID) {
-		historyMI.setOnAction(e ->{
-			try {
-				new HistoryPage(stage);
-			} catch (Exception e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		});
+		scn = new Scene(bp, 1200, 800);
 	}
 	
 	public void cartHandling(String userID) {
@@ -226,14 +219,43 @@ public class HomePage {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-		}); 
+		});
+		
+		homeMI.setOnAction(e ->{
+			try {
+				new HomePage(stage, userID);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		});
+		
+		cartMI.setOnAction(e ->{
+			try {
+				new CartPage(stage, userID);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		});
+		
+		historyMI.setOnAction(e ->{
+			try {
+				new HistoryPage(stage, userID);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		});
 			
 		//Bagian listview
 		
 		hoodieLV.setOnMouseClicked(e -> {
+			//munculin spinnner
 			HBox qtyBox = new HBox(qtySpinner, totalPriceLbl);
 			gpInfo.add(qtyBox, 0, 5);
 			qtyBox.setSpacing(5);
+			
 			int selectedIndex = hoodieLV.getSelectionModel().getSelectedIndex();
 
             if (selectedIndex != -1) {
@@ -283,16 +305,16 @@ public class HomePage {
 	        }
 	    });
 	}
+	
 	public void cartToDB(String userID, String hoodieID, int qty) {
 		qty = qtySpinner.getValue();
 		String query = "SELECT * FROM cart";
 		con.setResultSet(con.selectData(query));
-		
 		try {
 			while(con.getResultSet().next()) {
-				String userIDDB = con.getResultSet().getString("UserID");
-				String hoodieIDDB = con.getResultSet().getString("HoodieID");
-				if(userIDDB.equals(userID)&&hoodieIDDB.equals(hoodieID)) {
+				String userIDGet = con.getResultSet().getString("UserID");
+				String hoodieIDGet = con.getResultSet().getString("HoodieID");
+				if(userIDGet.equals(userID)&&hoodieIDGet.equals(hoodieID)) {
 					updateCart(userID, hoodieID, qty);
 					return;
 				}
@@ -301,21 +323,22 @@ public class HomePage {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		query = String.format("INSERT INTO cart VALUES ('%s', '%s', '%d')", userID, hoodieID, qty);
+		query = "INSERT INTO cart VALUES ('"+userID+"', '"+hoodieID+"', '"+qty+"')";
 		con.executeUpdate(query);
 	}
 	
 	//Update cart (Dipakai ketika quantity item cart bertambah)
 	public void updateCart(String userID, String hoodieID, int qty) {
 		String query = String.format
-				("UPDATE cart SET quantity = quantity + %d WHERE UserID = '%s' AND HoodieID = '%s'", qty, userID, hoodieID);
+				("UPDATE cart SET quantity = quantity + '"+qty+"' WHERE UserID = '"+userID+"' AND HoodieID = '"+hoodieID+"'");
 	con.executeUpdate(query);
 	}
 	
 	private void updateTotalPrice(Hoodie selectedHoodie) {
 	    int selectedQty = qtySpinner.getValue(); 
 	    double total = selectedHoodie.getHoodiePrice() * selectedQty;
-	    totalPriceLbl.setText("Total Price: " + total);
+	    String formattedTotal = String.format("%.2f", total);
+	    totalPriceLbl.setText("Total Price: " + formattedTotal);
 	}
 	
 	public HomePage(Stage stage, String userID) {
@@ -326,13 +349,9 @@ public class HomePage {
 		this.stage = stage;
 		stage.setScene(scn);
 		stage.show();
+		this.stage.setTitle("hO-Ohdie");
 		this.userID = userID;
-		
-		cartPageHandling(stage, userID);
-		historyPageHandling(stage, userID);
-		cartHandling(userID);
-		
-		
+		cartHandling(userID);		
 	}
 	
 

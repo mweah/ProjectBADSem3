@@ -5,6 +5,7 @@ import db.Connect;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
@@ -34,6 +35,7 @@ public class RegisterPage {
 	Label agreeTnC;
 	
 	Font font;
+	Font otherFont;
 	
 	Button regisButton;
 	
@@ -54,11 +56,23 @@ public class RegisterPage {
 	TextField phoneNumberTF;
 	TextArea addressTA;
 	
+	//Attribute utk register
+	String Email;
+	String Username;
+	String Password;
+	String ConfirmPW;
+	String PhoneNumber;
+	String Gender;
+	String Address;
+	String Role;
+	boolean AgreeBox;
+	
 	public void initialize() {
 		bp = new BorderPane();
 		gp = new GridPane();
 		vbox = new VBox();
 		
+		otherFont = Font.font("Calibri", FontWeight.BOLD, 14);
 		registerLabel = new Label("Register");
 		emailLabel = new Label("Email: ");
 		usernameLabel = new Label("Username: ");
@@ -68,6 +82,15 @@ public class RegisterPage {
 		genderLabel = new Label("Gender: ");
 		addressLabel = new Label("Address: ");
 		agreeTnC = new Label("I Agree to Term & Conditions");
+		
+		registerLabel.setFont(otherFont);
+		emailLabel.setFont(otherFont);
+		usernameLabel.setFont(otherFont);
+		passwordLabel.setFont(otherFont);
+		confirmPwLabel.setFont(otherFont);
+		phoneNumberLabel.setFont(otherFont);
+		genderLabel.setFont(otherFont);
+		addressLabel.setFont(otherFont);
 		
 		regisButton = new Button("Register");
 		
@@ -168,6 +191,22 @@ public class RegisterPage {
 
 	    con.executeUpdate(query);
 	}
+	
+	public void alertTemplate(String errorContent) {
+		Alert alert = new Alert(AlertType.ERROR);
+		
+		alert.setTitle("Error");
+		alert.setHeaderText("Error");
+		alert.setContentText(errorContent);
+		
+		ButtonType okBtn = new ButtonType("OK");
+		
+		alert.showAndWait().ifPresent(response -> {
+	        if (response == okBtn) {
+	            alert.close();
+	        }
+	    });
+	}
 
 	
 	public void menuHandling() {
@@ -185,15 +224,75 @@ public class RegisterPage {
 			String Password = passwordPF.getText();
 			String ConfirmPW = confirmPwPF.getText();
 			String PhoneNumber = phoneNumberTF.getText();
-			String Gender = null;
-			RadioButton selectedRadioButton = (RadioButton) genderGroup.getSelectedToggle();
-		      if (selectedRadioButton != null) {
-		        Gender = selectedRadioButton.getText();
-		    }
+		    String Gender = getGender(genderGroup.getSelectedToggle());
 			String Address = addressTA.getText();
-			String Role = "User";
+			Role = "User";
 			
-		    boolean isBoxChecked = tncCheckBox.isSelected();
+		    AgreeBox = tncCheckBox.isSelected();
+		    
+		  
+		    
+		    //validasi pastikan ga ada kosong
+		    if(Email.isEmpty()&&Username.isEmpty()&&Password.isEmpty()&& ConfirmPW.isEmpty()&&PhoneNumber.isEmpty()&&Gender.isEmpty()
+		    		&&Address.isEmpty()) {
+		    	alertTemplate("Form must be filled");
+		    	return;
+		    } else if(Email.isEmpty()) {
+		    	alertTemplate("Email must be filled");
+		    	return;
+		    } else if(Username.isEmpty()) {
+		    	alertTemplate("Username must be filled");
+		    	return;
+		    } else if(Password.isEmpty()) {
+		    	alertTemplate("Password must be filled");
+		    	return;
+		    } else if(ConfirmPW.isEmpty()) {
+		    	alertTemplate("Confirm password must be filled");
+		    	return;
+		    } else if(PhoneNumber.isEmpty()) {
+		    	alertTemplate("Phone number must be filled");
+		    	return;
+		    } else if(Gender.isEmpty()) {
+		    	alertTemplate("You must choose gender");
+		    	return;
+		    } else if(Address.isEmpty()) {
+		    	alertTemplate("Address must be filled");
+		    	return;
+		    } else if(!AgreeBox) {
+		    	alertTemplate("You must check the box as agreement");
+		    	return;
+		    }
+		    
+		    //validasi yang lain	
+		    if(!isUsernameUnique(Username)) {
+		    	alertTemplate("Username must be unique");
+		    	return;
+		    }
+		    
+		    if(!Email.endsWith("@hoohdie.com")) {
+		    	alertTemplate("Email must ends with '@hoohdie.com!'");
+		    	return;
+		    }
+		    
+		    if(Password.length() < 5) {
+		    	alertTemplate("Password must contain minimal 5 characters");
+		    	return;
+		    }
+		    
+		    if(!ConfirmPW.equals(Password)) {
+		    	alertTemplate("Confirm password must be the same as Password");
+		    	return;
+		    }
+		    
+		    if(!PhoneNumber.startsWith("+62")) {
+		    	alertTemplate("Phone number must stars with +62");
+		    	return;
+		    }
+		    
+		    if(PhoneNumber.length()!=14) {
+		    	alertTemplate("Phone number length must be 14 characters");
+		    	return;
+		    }
 		    
 			insertDataToDB(Email, Username, Password, PhoneNumber, Address, Gender, Role);
 			try {
@@ -205,12 +304,34 @@ public class RegisterPage {
 		});
 	}
 	
+	public String getGender(Toggle toggle) {
+	    RadioButton selectedRadioButton = (RadioButton) toggle;
+	    if (selectedRadioButton != null) {
+	        return selectedRadioButton.getText();
+	    }
+	    return "";
+	}
+
+	public boolean isUsernameUnique(String Username) {
+		String query = "SELECT * FROM user WHERE Username = '"+Username+"'";
+		con.setResultSet(con.selectData(query));
+		
+		try {		//kalau result setnya dapat kosong, berarti username unique
+			return !con.getResultSet().next();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
 	public RegisterPage(Stage stage) {
 		initialize();
 		styling();
 		menuHandling();
 		this.stage = stage;
 		this.stage.setScene(scn);
+		this.stage.setTitle("hO-Ohdie");
 		this.stage.show();
 	}
 

@@ -15,6 +15,7 @@ import registerPage.RegisterPage;
 import java.sql.SQLException;
 
 import db.Connect;
+import editProduct.EditPage;
 import homePage.HomePage;
 
 public class LoginPage extends Application{
@@ -169,7 +170,8 @@ public class LoginPage extends Application{
 			String Username = con.getResultSet().getString("Username");
 			userID = con.getResultSet().getString("UserID");
 			//Cek apakah username dari database mirip dengan 'cekUsername'
-			if(Username.equals(usernameCheck)) break;
+			if(Username.equals(usernameCheck)) 
+				break;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -177,6 +179,7 @@ public class LoginPage extends Application{
 		
 		return userID;
 	}
+	
 	public void menuHandling() {
 		logRegMI.setOnAction(e->{
 			try {
@@ -199,9 +202,10 @@ public class LoginPage extends Application{
 					System.out.println("Anda user");
 					//Testing apakah userID terbawa ke home page
 					System.out.println("ID Anda: " + userID);
+					System.out.println("Username Anda " + usernameCheck);
 					}
 					else if(checkRole(usernameCheck).equals("Admin")) {
-
+						new EditPage(stage);
 						
 						//Testing bekerja atau gak checkRole
 						System.out.println("Anda admin");
@@ -231,7 +235,8 @@ public class LoginPage extends Application{
 		this.stage = s;
 		this.stage.setScene(scn);
 		this.stage.show();
-		
+		this.stage.setTitle("hO-Ohdie");
+
 		
 	}
 	

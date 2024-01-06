@@ -37,10 +37,10 @@ public class TransactionDetail {
 	public void setHoodieName(String hoodieName) {
 		this.hoodieName.set(hoodieName);
 	}
-	public Integer getqty() {
+	public Integer getQty() {
 		return qty.get();
 	}
-	public void setqty(Integer qty) {
+	public void setQty(Integer qty) {
 		this.qty.set(qty);;
 	}
 	public Double getTotalPrice() {
